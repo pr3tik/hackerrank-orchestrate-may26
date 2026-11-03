@@ -26,6 +26,7 @@ def tokenize(text: str) -> list:
 
 
 RELEASE_NOTES_PENALTY = 0.6
+MONTHS = set("january february april june july august september october november december".split())  # 'may'/'march' left in: ambiguous
 
 
 @dataclass
@@ -52,7 +53,7 @@ class Retriever:
         self.max_idf = max(self.idf.values()) if self.idf else 1.0
 
     def search(self, query: str, company=None, k=5) -> list:
-        q = list(dict.fromkeys(tokenize(query)))
+        q = [t for t in dict.fromkeys(tokenize(query)) if t not in MONTHS and not re.fullmatch(r"(19|20)\d\d", t)]
         if not q:
             return []
         want = company.lower() if company and company.lower() != "none" else None

@@ -22,7 +22,9 @@ def extract_answer(query: str, hits, max_sents: int = 3, max_chars: int = 700) -
     text = re.sub(r"(?m)^\s*#{1,6}\s*", "", best.text)          # markdown headings
     text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)        # [label](url) -> label
     text = re.sub(r"[*_`>]+", "", text)                           # emphasis / quote markers
-    sents = [s for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
+    title = best.title.strip(" .").lower()
+    sents = [s.strip(" -") for s in re.split(r"(?<=[.!?])\s+", text)
+             if len(s.split()) >= 6 and s.strip(" .-").lower() != title] or [text[:300]]
     scored = [(len(q & set(tokenize(s))), i, s) for i, s in enumerate(sents)]
     top = sorted(scored, key=lambda x: (-x[0], x[1]))[:max_sents]
     top = [t for t in sorted(top, key=lambda x: x[1]) if t[0] > 0] or scored[:1]

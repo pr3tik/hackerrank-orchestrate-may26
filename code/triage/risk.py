@@ -5,15 +5,23 @@ from dataclasses import dataclass, field
 # HIGH: always escalate. MEDIUM: reply only if retrieval is confident.
 HIGH = {
     "fraud_or_unauthorized": r"\b(fraud\w*|unauthori[sz]ed|scam\w*|phish\w*|identity theft)\b",
-    "service_outage": r"\b(site|website|platform|service|server)\b.{0,25}\b(down|outage|unavailable)\b|\bnone of the (pages|features)\b|\boutage\b",
-    "money_dispute": r"\b(chargeback|dispute[sd]?|charged twice|double[- ]charged|overcharg\w+)\b",
+    "service_outage": (
+        r"\b(is|are|was|has been|have been) (down|unavailable|not (working|loading|responding))\b"
+        r"|\bstopped working\b"
+        r"|\bnone of the [\w ]{1,40}?(working|loading|accessible)\b"
+        r"|\b(all|every) (my )?(requests?|submissions?|pages?|features?)\b[\w ,]{0,30}?\b(fail\w*|not working|broken|down)\b"
+        r"|\boutage\b"
+        r"|\b(site|website|platform|server)\b.{0,25}\b(down|unavailable)\b"
+    ),
+    "money_dispute": r"\b(chargeback|charged twice|double[- ]charged|overcharg\w+)\b",
+    "account_specific_billing": r"\b(order|transaction|invoice|payment|reference|ref)\s*(id|no\.?|number|#)\b|\b[a-z]{2,}_(live|test)_\w+|\b\d{10,}\b",
     "legal": r"\b(lawyer|attorney|legal action|lawsuit|sue you|subpoena|gdpr|court)\b",
     "security_report": r"\b(vulnerabilit\w+|exploit\w*|data breach|bug bounty|leaked)\b",
     "account_compromise": r"\b(hacked|compromised|someone (else )?(logged|accessed))\b",
 }
 MEDIUM = {
     "lost_or_stolen": r"\b(lost|stolen)\b.{0,40}\b(card|cheques?|checks?)\b|\b(card|cheques?|checks?)\b.{0,40}\b(lost|stolen)\b",
-    "billing": r"\b(refund\w*|billing|invoice|subscription|payment|charged)\b",
+    "billing": r"\b(refund\w*|billing|invoice|subscription|payment|charged|dispute[sd]?)\b",
     "account_access": r"\b(locked out|can'?t (log ?in|access)|suspended|banned|reset|2fa|password)\b",
     "assessment_integrity": r"\b(cheat\w*|plagiari\w+|score (dispute|change)|re-?evaluat\w+|retake)\b",
     "permissions": r"\b(permission\w*|admin|remove (a )?user|transfer ownership)\b",

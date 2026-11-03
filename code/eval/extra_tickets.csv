@@ -1,0 +1,31 @@
+Issue,Subject,Company,Expected
+What is the capital of France?,,None,invalid
+Who won the cricket world cup in 2011?,,None,invalid
+Write me a poem about the ocean,,None,invalid
+What's the weather in Mumbai today?,,None,invalid
+Tell me a joke,,None,invalid
+How do I cook paneer butter masala?,,None,invalid
+asdf qwerty zxcv,,None,invalid
+Can you recommend a good movie to watch tonight?,,None,invalid
+What is the name of the lead singer of Coldplay?,"Urgent, please help",None,invalid
+Who is the prime minister of Canada?,,None,invalid
+How many moons does Jupiter have?,,None,invalid
+Translate good morning into Spanish,,None,invalid
+Which football club is the best in the world?,Please help,None,invalid
+What is 17 multiplied by 23?,,None,invalid
+How do I reset my HackerRank password?,,HackerRank,valid
+How can I extend the time for a candidate in a test?,,HackerRank,valid
+How do I invite candidates to take a test?,,HackerRank,valid
+Can I delete my HackerRank account?,,HackerRank,valid
+How do I add a question to my test library?,,HackerRank,valid
+How do I schedule an interview in HackerRank?,,HackerRank,valid
+How do I integrate HackerRank with my applicant tracking system?,,HackerRank,valid
+How do I delete a conversation in Claude?,,Claude,valid
+How do I cancel my Claude Pro subscription?,,Claude,valid
+What are the usage limits on the Claude Pro plan?,,Claude,valid
+How do I use Claude Code in my terminal?,,Claude,valid
+How do I set up single sign-on for our team on Claude?,,Claude,valid
+How do I dispute a charge on my Visa card?,,Visa,valid
+Why was my Visa card declined?,,Visa,valid
+How do I register for 3-D Secure?,,Visa,valid
+How can I find a Visa ATM near me?,,Visa,valid

@@ -50,6 +50,31 @@ def _read(path: Path) -> str:
     return raw
 
 
+FRONT = re.compile(r"\A\ufeff?\s*---\s*\n(.*?)\n---\s*(\n|\Z)", re.S)
+
+
+def _front_matter(text: str):
+    """Split YAML front matter off the body so it never reaches retrieval or answers."""
+    m = FRONT.match(text)
+    if not m:
+        return None, text
+    t = re.search(r"(?m)^title:\s*(.+?)\s*$", m.group(1))
+    return (t.group(1).strip().strip("\"'") if t else None), text[m.end():]
+
+
+def _clean_md(text: str) -> str:
+    text = re.sub(r"!\[[^\]]*\]\([^)]*\)", " ", text)            # images
+    text = re.sub(r"(?m)!\S+\.(png|jpe?g|gif|svg|webp)\b", " ", text)  # leftover image names
+    text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)            # [label](url) -> label
+    text = re.sub(r"https?://\S+", " ", text)                       # bare urls
+    text = re.sub(r"(?m)^_Last modified:.*$", "", text)
+    text = re.sub(r"(?m)^[ \t]*Last updated:.*$", "", text)                 # "Last updated: Oct 15, 2025 ..." lines
+    text = re.sub(r"\(Last updated [^)]*\)", "", text)
+    # headings become their own sentence (no '#', and no glueing onto the next paragraph)
+    text = re.sub(r"(?m)^[ \t]*#{1,6}[ \t]*(.+?)[ \t]*$", lambda m: m.group(1) if m.group(1)[-1] in ".?!:" else m.group(1) + ".", text)
+    return text
+
+
 def _title(text: str, path: Path) -> str:
     m = re.search(r"(?m)^title:\s*(.+)$", text) or re.search(r"(?m)^#\s+(.+)$", text)
     if m:
@@ -89,8 +114,8 @@ def load_corpus(data_dir) -> list:
         parts = path.relative_to(root).parts
         company = _company(parts[0]) if len(parts) > 1 else "Unknown"
         area = parts[1] if len(parts) > 2 else company
-        text = _read(path)
-        title = _title(text, path)
-        for piece in _split(text):
+        fm_title, body = _front_matter(_read(path))
+        title = fm_title or _title(body, path)
+        for piece in _split(_clean_md(body)):
             chunks.append(Chunk(piece, str(Path(*parts)), company, area, title))
     return chunks
