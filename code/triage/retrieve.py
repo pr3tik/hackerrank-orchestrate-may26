@@ -25,11 +25,15 @@ def tokenize(text: str) -> list:
     return out
 
 
+RELEASE_NOTES_PENALTY = 0.6
+
+
 @dataclass
 class Hit:
     score: float
     coverage: float  # fraction of distinct query terms found in this chunk (0..1)
     chunk: Chunk
+    strength: float = 0.0  # same, but weighted by term rarity; unseen terms count as max rarity
 
 
 class Retriever:
@@ -45,26 +49,31 @@ class Retriever:
         n = len(self.docs)
         self.idf = {t: math.log(1 + (n - f + 0.5) / (f + 0.5)) for t, f in df.items()}
         self.k1, self.b = k1, b
+        self.max_idf = max(self.idf.values()) if self.idf else 1.0
 
     def search(self, query: str, company=None, k=5) -> list:
         q = list(dict.fromkeys(tokenize(query)))
         if not q:
             return []
         want = company.lower() if company and company.lower() != "none" else None
+        total_w = sum(self.idf.get(t, self.max_idf) for t in q)
         hits = []
         for i, tf in enumerate(self.tf):
             c = self.chunks[i]
             if want and c.company.lower() != want:
                 continue
-            score, matched = 0.0, 0
+            score, matched, matched_w = 0.0, 0, 0.0
             for t in q:
                 f = tf.get(t, 0)
                 if not f:
                     continue
                 matched += 1
+                matched_w += self.idf[t]
                 norm = 1 - self.b + self.b * self.len[i] / self.avg
                 score += self.idf[t] * f * (self.k1 + 1) / (f + self.k1 * norm)
+            if "release-notes" in c.source.lower():
+                score *= RELEASE_NOTES_PENALTY  # changelogs rarely answer how-to questions (hypothesis)
             if score > 0:
-                hits.append(Hit(score, matched / len(q), c))
+                hits.append(Hit(score, matched / len(q), c, matched_w / total_w))
         hits.sort(key=lambda h: h.score, reverse=True)
         return hits[:k]

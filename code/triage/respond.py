@@ -13,10 +13,16 @@ OUT_OF_SCOPE_MSG = (
 )
 
 
+THANKS_MSG = "You're welcome! If you have any other questions about HackerRank, Claude, or Visa support, just ask."
+
+
 def extract_answer(query: str, hits, max_sents: int = 3, max_chars: int = 700) -> str:
     q = set(tokenize(query))
     best = hits[0].chunk
-    sents = [s for s in re.split(r"(?<=[.!?])\s+", best.text) if s.strip()]
+    text = re.sub(r"(?m)^\s*#{1,6}\s*", "", best.text)          # markdown headings
+    text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)        # [label](url) -> label
+    text = re.sub(r"[*_`>]+", "", text)                           # emphasis / quote markers
+    sents = [s for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
     scored = [(len(q & set(tokenize(s))), i, s) for i, s in enumerate(sents)]
     top = sorted(scored, key=lambda x: (-x[0], x[1]))[:max_sents]
     top = [t for t in sorted(top, key=lambda x: x[1]) if t[0] > 0] or scored[:1]

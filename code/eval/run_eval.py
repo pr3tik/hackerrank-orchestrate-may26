@@ -34,3 +34,23 @@ for i, (r, p) in enumerate(zip(rows, preds)):
     print(f"         {p['status']} / {p['request_type']} / {p['product_area']}")
 print("\nexpected request_type values:", Counter(field(r, "request_type") for r in rows))
 print("expected product_area values:", Counter(field(r, "product_area") for r in rows))
+
+from triage.risk import sanitize  # noqa: E402
+print("\nDETAIL for rows where request_type or product_area is wrong:")
+rt = Retriever(load_corpus(a.data))
+for i, (r, p) in enumerate(zip(rows, preds)):
+    if field(r, "request_type").lower() == p["request_type"] and field(r, "product_area").lower() == p["product_area"]:
+        continue
+    q, _ = sanitize(f"{field(r,'subject')}. {field(r,'issue')}".strip(". "))
+    hits = rt.search(q, field(r, "company")) or rt.search(q)
+    print(f"\n row {i} [{field(r,'company')}] issue: {field(r,'issue')[:220]!r}  subject: {field(r,'subject')[:60]!r}")
+    print(f"   expected: type={field(r,'request_type')} area={field(r,'product_area')}  | predicted: type={p['request_type']} area={p['product_area']}")
+    for h in hits[:3]:
+        print(f"   hit {h.coverage:.2f}  {h.chunk.source}")
+
+print("\nSIGNALS (use these to calibrate thresholds next round): expected type | coverage | strength | top source")
+for i, r in enumerate(rows):
+    q, _ = sanitize(f"{field(r,'subject')}. {field(r,'issue')}".strip(". "))
+    hits = rt.search(q, field(r, "company")) or rt.search(q)
+    h = hits[0] if hits else None
+    print(f"  row {i}: {field(r,'request_type'):14s} cov={h.coverage if h else 0:.2f} strength={h.strength if h else 0:.2f}  {h.chunk.source if h else '-'}")

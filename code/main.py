@@ -9,7 +9,7 @@ from triage.agent import triage  # noqa: E402
 from triage.ingest import load_corpus  # noqa: E402
 from triage.retrieve import Retriever  # noqa: E402
 
-OUT_COLS = ["status", "product_area", "response", "justification", "request_type"]
+HEADER = ["issue", "subject", "company", "response", "product_area", "status", "request_type", "justification"]  # matches support_tickets/output.csv
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -35,14 +35,13 @@ def main():
     print(f"Loaded {len(chunks)} chunks from {a.data}")
     retriever = Retriever(chunks)
     with open(a.input, newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        rows, base = list(reader), [c for c in reader.fieldnames if c.strip().lower() not in OUT_COLS]
+        rows = list(csv.DictReader(f))
     results = run(rows, retriever)
     with open(a.output, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=base + OUT_COLS)
+        w = csv.DictWriter(f, fieldnames=HEADER)
         w.writeheader()
         for r, res in zip(rows, results):
-            w.writerow({**{k: r.get(k, "") for k in base}, **res})
+            w.writerow({"issue": field(r, "issue"), "subject": field(r, "subject"), "company": field(r, "company"), **res})
     print(f"Wrote {len(results)} rows to {a.output}")
 
 
